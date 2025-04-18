@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SaaS Auth Starter
 
-## Getting Started
+A full-stack multi-tenant authentication starter built with:
 
-First, run the development server:
+- ✅ Next.js 14 (App Router)
+- ✅ TypeScript & Tailwind CSS
+- ✅ Drizzle ORM + Neon Postgres
+- ✅ Custom email/password authentication
+- ✅ Secure JWT-based sessions (HTTP-only cookies)
+- ✅ Email verification with Resend
+- ✅ Forgot & reset password flow
+- ✅ Modular schema (users, profiles, orgs)
+- ✅ Zod + React Hook Form + shadcn/ui
+- 🚧 Social login (Google, Microsoft, Apple) — coming next
+
+---
+
+## 🧱 Stack
+
+| Layer        | Tech                               |
+|--------------|------------------------------------|
+| Frontend     | Next.js App Router, Tailwind, shadcn/ui |
+| Auth         | Custom email/password + JWT session |
+| ORM          | Drizzle ORM                        |
+| Database     | PostgreSQL (hosted on Neon)        |
+| Email        | Resend API                         |
+| Forms        | react-hook-form + zod              |
+
+---
+
+## 🗂 Folder Structure
+
+```
+app/
+  api/
+    auth/
+      signup/
+      login/
+      logout/
+      forgot-password/
+      reset-password/
+      verify-email/
+  dashboard/
+  signup/
+  login/
+  forgot-password/
+  reset-password/
+
+components/
+  auth/
+    signup-form.tsx
+    login-form.tsx
+    forgot-password-form.tsx
+    reset-form.tsx
+    verify-client.tsx
+
+lib/
+  auth/
+    session.ts
+  db.ts
+  email/
+    sendVerificationEmail.ts
+    sendResetPasswordEmail.ts
+```
+
+---
+
+## ⚙️ Getting Started
+
+1. Clone the repo  
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Add your `.env.local` file:
+
+```env
+# Neon DB
+PGHOST=...
+PGDATABASE=...
+PGUSER=...
+PGPASSWORD=...
+
+# Email (Resend)
+RESEND_API_KEY=...
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+JWT_SECRET=supersecretkey
+```
+
+4. Push your schema:
+
+```bash
+npm run db:push
+```
+
+5. Run the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✅ Completed Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [x] Signup (email/password)
+- [x] Email verification
+- [x] Login with JWT + session cookie
+- [x] Protected dashboard route
+- [x] Forgot & reset password
+- [x] Toast feedback everywhere
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🚧 Coming Next
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [ ] OAuth login (Google, Microsoft, Apple)
+- [ ] RBAC: roles and permissions
+- [ ] Subdomain-based multi-tenancy
+- [ ] Organization switching
+- [ ] Invite & manage users per org
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🪪 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
