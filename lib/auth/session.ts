@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
-import {ReadonlyRequestCookies} from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import {getToken} from "next-auth/jwt";
+import type {ReadonlyRequestCookies} from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import {cookies as nextCookies} from "next/headers";
 
 const TOKEN_NAME = "session";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -16,35 +18,51 @@ export function verifySessionCookie(token: string): {userId: string} | null {
   }
 }
 
-export function setSessionCookie(token: string, res: Response) {
-  res.headers.append(
-    "Set-Cookie",
-    `${TOKEN_NAME}=${token}; Path=/; HttpOnly; Max-Age=${MAX_AGE}; SameSite=Lax; ${
-      process.env.NODE_ENV === "production" ? "Secure;" : ""
-    }`
-  );
+export function setSessionCookie(token: string, res: Response | any) {
+  res.cookies.set(TOKEN_NAME, token, {
+    path: "/",
+    httpOnly: true,
+    maxAge: MAX_AGE,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 }
 
-export function destroySession(res: Response) {
-  res.headers.append(
-    "Set-Cookie",
-    `${TOKEN_NAME}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax; ${
-      process.env.NODE_ENV === "production" ? "Secure;" : ""
-    }`
-  );
+export function destroySession(res: Response | any) {
+  res.cookies.set(TOKEN_NAME, "", {
+    path: "/",
+    httpOnly: true,
+    maxAge: 0,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 }
 
-export function getSessionFromRequest({
+export async function getSessionFromRequest({
   cookies,
 }: {
-  cookies: ReadonlyRequestCookies;
-}): {userId: string} | null {
-  const token = cookies.get(TOKEN_NAME)?.value;
-  if (!token) return null;
+  cookies?: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies>;
+} = {}): Promise<{userId: string} | null> {
+  const cookieStore =
+    cookies && typeof (cookies as {get?: unknown})?.get === "function"
+      ? (cookies as ReadonlyRequestCookies)
+      : ((await cookies) ?? nextCookies());
 
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as {userId: string};
-  } catch {
-    return null;
+  const token = (await cookieStore).get(TOKEN_NAME)?.value;
+  if (token) {
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET!) as {userId: string};
+    } catch {}
   }
+
+  const nextAuthToken = await getToken({
+    req: {headers: {cookie: cookieStore.toString()}},
+    secret: process.env.AUTH_SECRET,
+  });
+
+  if (nextAuthToken?.sub) {
+    return {userId: nextAuthToken.sub};
+  }
+
+  return null;
 }

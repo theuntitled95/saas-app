@@ -13,6 +13,10 @@ export const userProfiles = pgTable("user_profiles", {
   phone: text("phone"),
   avatarUrl: text("avatar_url"),
 
+  bio: text("bio"),
+  language: text("language"),
+  timezone: text("timezone"),
+
   createdAt: timestamp("created_at", {withTimezone: true}).defaultNow(),
   updatedAt: timestamp("updated_at", {withTimezone: true}).defaultNow(),
 

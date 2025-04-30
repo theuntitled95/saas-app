@@ -1,6 +1,13 @@
+import {auth} from "@/auth";
 import {LoginForm} from "@/components/auth/login-form";
+import {redirect} from "next/navigation";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect("/dashboard"); // already logged in, redirect to dashboard
+  }
   return (
     <div className="max-w-md mx-auto mt-20">
       <LoginForm />

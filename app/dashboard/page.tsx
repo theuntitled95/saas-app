@@ -1,11 +1,14 @@
+import {LogoutButton} from "@/components/auth/logout-button";
 import {Button} from "@/components/ui/button";
 import {getSessionFromRequest} from "@/lib/auth/session";
+// import {signOut} from "next-auth/react";
 import {cookies} from "next/headers";
 import Link from "next/link";
 import {redirect} from "next/navigation";
 
 export default async function DashboardPage() {
-  const session = getSessionFromRequest({cookies: await cookies()});
+  const cookiesData = await cookies();
+  const session = await getSessionFromRequest({cookies: cookiesData});
 
   if (!session?.userId) {
     redirect("/login");
@@ -18,9 +21,13 @@ export default async function DashboardPage() {
       <Button asChild variant={"link"}>
         <Link href="/forgot-password">Forgot Password</Link>
       </Button>
-      <form action="/api/auth/logout" method="POST">
-        <Button variant={"destructive"}>Logout</Button>
-      </form>
+      {/* <Button
+        onClick={() => signOut({callbackUrl: "/login"})}
+        variant="destructive"
+      >
+        Sign Out
+      </Button> */}
+      <LogoutButton />
     </div>
   );
 }
