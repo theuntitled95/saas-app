@@ -4,6 +4,7 @@ import {Breadcrumbs} from "@/components/breadcrumbs";
 import {DashboardSidebar} from "@/components/dashboard-sidebar";
 import {Separator} from "@/components/ui/separator";
 import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
+import {ModeToggle} from "@/components/ui/theme-switcher";
 
 export default function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default function DashboardLayout({
               <Breadcrumbs />
             </div>
             <div className="ml-auto">
+              <ModeToggle />
               {/* You can add user profile, notifications, etc. here */}
             </div>
           </header>

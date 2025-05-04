@@ -1,7 +1,6 @@
 "use client";
 
 import {zodResolver} from "@hookform/resolvers/zod";
-import Head from "next/head";
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import PersonalInfoForm from "./components/personal-info-form";

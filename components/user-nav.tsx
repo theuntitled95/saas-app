@@ -105,7 +105,7 @@ export function UserNav() {
         side="right"
         forceMount
       >
-        <DropdownMenuLabel className="font-normal">
+        <DropdownMenuLabel className="font-normal flex items-center space-x-2 gap-1">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none truncate">
               {displayName}

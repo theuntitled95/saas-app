@@ -5,6 +5,8 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  Shield,
+  ShieldUser,
   ShoppingCart,
   User,
   Users,
@@ -43,6 +45,11 @@ export function DashboardSidebar() {
       icon: User,
     },
     {
+      title: "Roles",
+      href: "/dashboard/roles",
+      icon: ShieldUser,
+    },
+    {
       title: "Orders",
       href: "/dashboard/orders",
       icon: ShoppingCart,
@@ -74,6 +81,15 @@ export function DashboardSidebar() {
     },
   ];
 
+  const DEVNavItems = [
+    {
+      title: "Organizations",
+      href: "/dashboard/dev",
+      icon: Shield,
+      disabled: false,
+    },
+  ];
+
   return (
     <Sidebar>
       <SidebarHeader className="p-2">
@@ -85,6 +101,27 @@ export function DashboardSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.href} aria-disabled={item.disabled}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>DEV Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {DEVNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild

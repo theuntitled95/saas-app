@@ -1,10 +1,16 @@
 import {LogoutButton} from "@/components/auth/logout-button";
 import {Button} from "@/components/ui/button";
 import {getSessionFromRequest} from "@/lib/auth/session";
+import {Metadata} from "next";
 // import {signOut} from "next-auth/react";
 import {cookies} from "next/headers";
 import Link from "next/link";
 import {redirect} from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "User Dashboard",
+};
 
 export default async function DashboardPage() {
   const cookiesData = await cookies();

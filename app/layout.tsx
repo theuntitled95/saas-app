@@ -1,4 +1,5 @@
 import {CustomSessionProvider} from "@/components/providers/session-provider";
+import {ThemeProvider} from "@/components/providers/theme-provider";
 import {Toaster} from "@/components/ui/sonner";
 import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
@@ -26,13 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextTopLoader />
-        <CustomSessionProvider>{children}</CustomSessionProvider>
-        <Toaster richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextTopLoader easing="ease" zIndex={1000} showSpinner={false} />
+          <CustomSessionProvider>{children}</CustomSessionProvider>
+          <Toaster richColors />
+        </ThemeProvider>
       </body>
     </html>
   );
