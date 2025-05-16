@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CreditCard,
-  LogOut,
-  MoreVerticalIcon,
-  Settings,
-  User,
-} from "lucide-react";
+import {CreditCard, LogOut, Settings, User} from "lucide-react";
 import {signOut} from "next-auth/react";
 import Link from "next/link";
 import {useEffect, useState, useTransition} from "react";
@@ -77,10 +71,10 @@ export function UserNav() {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          className="relative h-auto w-full justify-start gap-2 px-2 py-1.5 text-left cursor-pointer"
+          variant="outline"
+          className="relative h-auto w-full gap-2 px-2 py-4 cursor-pointer text-white hover:text-white bg-gradient-to-r from-slate-900 to-slate-700 hover:to-slate-500 hover:from-slate-900 transition duration-200 ease-in-out rounded-full"
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 text-primary">
             {displayImage ? (
               <AvatarImage src={displayImage} alt={displayName} />
             ) : (
@@ -90,33 +84,31 @@ export function UserNav() {
 
           <div className="flex flex-1 flex-col space-y-0.5 text-left">
             <p className="text-sm font-medium truncate">{displayName}</p>
-            <p className="text-xs text-muted-foreground truncate">
+            {/* <p className="text-xs text-muted-foreground truncate">
               {displayEmail}
-            </p>
+            </p> */}
           </div>
 
-          <MoreVerticalIcon className="ml-auto size-4" />
+          <Settings className="ml-auto mr-2 size-4" />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-56"
+        className="w-56 p-0"
         align="start"
         side="right"
         forceMount
       >
-        <DropdownMenuLabel className="font-normal flex items-center space-x-2 gap-1">
+        <DropdownMenuLabel className="font-normal flex items-center space-x-2 gap-1 bg-gradient-to-r from-slate-500 to-slate-800 text-white">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none truncate">
               {displayName}
             </p>
-            <p className="text-xs leading-none text-muted-foreground truncate">
-              {displayEmail}
-            </p>
+            <p className="text-xs leading-none truncate">{displayEmail}</p>
           </div>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="m-0" />
 
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>

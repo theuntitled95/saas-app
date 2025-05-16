@@ -48,6 +48,7 @@ export function DashboardSidebar() {
       title: "Roles",
       href: "/dashboard/roles",
       icon: ShieldUser,
+      disabled: true,
     },
     {
       title: "Orders",
@@ -81,12 +82,33 @@ export function DashboardSidebar() {
     },
   ];
 
+  const orgNavItems = [
+    {
+      title: "Members",
+      href: "/dashboard/organization/members",
+      icon: Users,
+      // disabled: true,
+    },
+    {
+      title: "Settings",
+      href: "/dashboard/organization/settings",
+      icon: Settings,
+      disabled: true,
+    },
+  ];
+
   const DEVNavItems = [
     {
       title: "Organizations",
-      href: "/dashboard/dev",
+      href: "/dashboard/dev/organizations",
       icon: Shield,
       disabled: false,
+    },
+    {
+      title: "Users",
+      href: "/dashboard/dev/users",
+      icon: Users,
+      disabled: true,
     },
   ];
 
@@ -118,7 +140,29 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>DEV Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Organization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {orgNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.href} aria-disabled={item.disabled}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Developer</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {DEVNavItems.map((item) => (
@@ -139,7 +183,7 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="p-2">
         <UserNav />
       </SidebarFooter>
       <SidebarRail />

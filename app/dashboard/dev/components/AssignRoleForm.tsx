@@ -3,6 +3,7 @@
 import {
   Check,
   Filter,
+  Loader2Icon,
   MoreHorizontal,
   Plus,
   Search,
@@ -172,46 +173,42 @@ export default function RolesPage() {
   };
 
   // Handle role assignment
-  const handleAssignRole = () => {
-    if (!selectedUser || !selectedRole) return;
+  const handleAssignRole = async () => {
+    if (!selectedUser || !selectedRole || !selectedOrg) return;
 
-    // In a real app, this would be an API call
-    // For now, we'll just update our local state
-    const updatedUsers = users.map((user) => {
-      if (user.id === selectedUser.id) {
-        // Remove any existing role for this org
-        const filteredRoles = user.roles.filter(
-          (role) => role.organizationId !== selectedOrg
-        );
-
-        // Add the new role
-        return {
-          ...user,
-          roles: [
-            ...filteredRoles,
-            {organizationId: selectedOrg, roleId: selectedRole},
-          ],
-        };
-      }
-      return user;
+    const res = await fetch("/api/roles/assign", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        userId: selectedUser.id,
+        organizationId: selectedOrg,
+        roleId: selectedRole,
+      }),
     });
 
-    // In a real app, we would update the state after the API call succeeds
-    // users = updatedUsers
+    if (res.ok) {
+      toast.success(
+        `${selectedUser.name} has been assigned the role of ${roles.find((r) => r.id === selectedRole)?.name} in ${organizations.find((o) => o.id === selectedOrg)?.name}.`
+      );
+      setIsAssignRoleDialogOpen(false);
+      setSelectedUser(null);
+      setSelectedRole(null);
 
-    toast.success(
-      `${selectedUser.name} has been assigned the role of ${roles.find((r) => r.id === selectedRole)?.name} in ${organizations.find((o) => o.id === selectedOrg)?.name}.`
-    );
-
-    setIsAssignRoleDialogOpen(false);
-    setSelectedUser(null);
-    setSelectedRole(null);
+      // Refetch users
+      if (selectedOrg) {
+        const updatedRes = await fetch(`/api/users?orgId=${selectedOrg}`);
+        const updatedUsers = await updatedRes.json();
+        setUsers(updatedUsers);
+      }
+    } else {
+      toast.error("Failed to assign role.");
+    }
   };
 
   // Open the assign role dialog for a specific user
   const openAssignRoleDialog = (user: User) => {
     setSelectedUser(user);
-    const currentRole = getUserRole(user, selectedOrg);
+    const currentRole = selectedOrg ? getUserRole(user, selectedOrg) : null;
     setSelectedRole(currentRole?.id || null);
     setIsAssignRoleDialogOpen(true);
   };
@@ -302,128 +299,139 @@ export default function RolesPage() {
           </div>
 
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Permissions
-                  </TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.length === 0 ? (
+            {isLoadingUsers ? (
+              <div className="flex items-center justify-center h-32 gap-2">
+                <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground">Loading users...</span>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      No users found.
-                    </TableCell>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Email
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Permissions
+                    </TableHead>
+                    <TableHead className="w-[60px]"></TableHead>
                   </TableRow>
-                ) : (
-                  filteredUsers.map((user) => {
-                    const userRole = getUserRole(user, selectedOrg);
-                    return (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>
-                                {user.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")
-                                  .toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div>{user.name}</div>
-                              <div className="text-xs text-muted-foreground md:hidden">
-                                {user.email}
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No users found in the selected Organization.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => {
+                      const userRole = selectedOrg
+                        ? getUserRole(user, selectedOrg)
+                        : null;
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>
+                                  {user.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div>{user.name}</div>
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {user.email}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {userRole ? (
-                            <Badge
-                              className={cn(
-                                userRole.id === "admin" &&
-                                  "bg-red-100 text-red-800 hover:bg-red-100/80",
-                                userRole.id === "manager" &&
-                                  "bg-amber-100 text-amber-800 hover:bg-amber-100/80",
-                                userRole.id === "editor" &&
-                                  "bg-green-100 text-green-800 hover:bg-green-100/80",
-                                userRole.id === "viewer" &&
-                                  "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
-                              )}
-                            >
-                              {userRole.name}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">
-                              No role
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {user.email}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {userRole ? (
-                            <div className="flex flex-wrap gap-1">
-                              {userRole.permissions
-                                .slice(0, 2)
-                                .map((permission) => (
-                                  <Badge
-                                    key={permission}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {permission}
-                                  </Badge>
-                                ))}
-                              {userRole.permissions.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{userRole.permissions.length - 2} more
-                                </Badge>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">
-                              No permissions
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => openAssignRoleDialog(user)}
+                          </TableCell>
+                          <TableCell>
+                            {userRole ? (
+                              <Badge
+                                className={cn(
+                                  userRole.id === "admin" &&
+                                    "bg-red-100 text-red-800 hover:bg-red-100/80",
+                                  userRole.id === "manager" &&
+                                    "bg-amber-100 text-amber-800 hover:bg-amber-100/80",
+                                  userRole.id === "editor" &&
+                                    "bg-green-100 text-green-800 hover:bg-green-100/80",
+                                  userRole.id === "viewer" &&
+                                    "bg-blue-100 text-blue-800 hover:bg-blue-100/80"
+                                )}
                               >
-                                Change Role
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>View User</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                Remove from Organization
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                                {userRole.name}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">
+                                No role
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {user.email}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {userRole ? (
+                              <div className="flex flex-wrap gap-1">
+                                {userRole.permissions
+                                  .slice(0, 2)
+                                  .map((permission) => (
+                                    <Badge
+                                      key={permission}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {permission}
+                                    </Badge>
+                                  ))}
+                                {userRole.permissions.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{userRole.permissions.length - 2} more
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">
+                                No permissions
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => openAssignRoleDialog(user)}
+                                >
+                                  Change Role
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>View User</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  Remove from Organization
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>

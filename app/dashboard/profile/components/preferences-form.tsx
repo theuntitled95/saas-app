@@ -2,7 +2,7 @@
 
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useEffect, useState, useTransition} from "react";
-import {useForm} from "react-hook-form";
+import {useForm, UseFormReturn} from "react-hook-form";
 import {toast} from "sonner";
 import {z} from "zod";
 
@@ -33,6 +33,7 @@ import {
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {cn} from "@/lib/utils";
 import {ChevronsUpDown, Loader2} from "lucide-react";
+import {ProfileFormValues} from "../profile-form-schema";
 
 const languages = [
   {label: "English", value: "en"},
@@ -61,14 +62,23 @@ const PreferencesSchema = z.object({
 
 type PreferencesFormValues = z.infer<typeof PreferencesSchema>;
 
-export default function PreferencesForm() {
-  const [isPending, startTransition] = useTransition();
-  const [defaultValues, setDefaultValues] = useState<PreferencesFormValues>({
-    language: "en",
-    timezone: "Asia/Muscat",
-  });
+interface PreferencesFormProps {
+  form: UseFormReturn<PreferencesFormValues>;
+  defaultValues: Partial<ProfileFormValues>;
+}
 
-  const form = useForm<PreferencesFormValues>({
+export default function PreferencesForm({
+  form,
+  defaultValues,
+}: PreferencesFormProps) {
+  const [isPending, startTransition] = useTransition();
+  const [localDefaultValues, setLocalDefaultValues] =
+    useState<PreferencesFormValues>({
+      language: defaultValues.language ?? "en",
+      timezone: defaultValues.timezone ?? "Asia/Muscat",
+    });
+
+  const localForm = useForm<PreferencesFormValues>({
     resolver: zodResolver(PreferencesSchema),
     defaultValues,
   });
@@ -82,11 +92,11 @@ export default function PreferencesForm() {
             language: data.language || "en",
             timezone: data.timezone || "Asia/Muscat",
           };
-          setDefaultValues(values);
-          form.reset(values);
+          setLocalDefaultValues(values);
+          localForm.reset(values);
         }
       });
-  }, [form]);
+  }, [localForm]);
 
   const onSubmit = (values: PreferencesFormValues) => {
     startTransition(async () => {

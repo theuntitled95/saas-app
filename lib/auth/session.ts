@@ -42,7 +42,7 @@ export async function getSessionFromRequest({
   cookies,
 }: {
   cookies?: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies>;
-} = {}): Promise<{userId: string} | null> {
+} = {}): Promise<{userId: string; email: string} | null> {
   const cookieStore =
     cookies && typeof (cookies as {get?: unknown})?.get === "function"
       ? (cookies as ReadonlyRequestCookies)
@@ -51,7 +51,10 @@ export async function getSessionFromRequest({
   const token = (await cookieStore).get(TOKEN_NAME)?.value;
   if (token) {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET!) as {userId: string};
+      return jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: string;
+        email: string;
+      };
     } catch {}
   }
 
@@ -61,7 +64,7 @@ export async function getSessionFromRequest({
   });
 
   if (nextAuthToken?.sub) {
-    return {userId: nextAuthToken.sub};
+    return {userId: nextAuthToken.sub, email: nextAuthToken.email ?? ""};
   }
 
   return null;

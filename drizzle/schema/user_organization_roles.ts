@@ -8,9 +8,8 @@ export const userOrganizationRoles = pgTable("user_organization_roles", {
   userId: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  organizationId: uuid("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
+  organizationId: uuid("organization_id").references(() => organizations.id),
+  // .notNull(),
   roleId: uuid("role_id")
     .references(() => roles.id)
     .notNull(),

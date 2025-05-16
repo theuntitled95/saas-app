@@ -32,34 +32,32 @@ type Organization = {
   name: string;
 };
 
-const organizations: Organization[] = [
-  {
-    id: "1",
-    name: "Acme Inc",
-  },
-  {
-    id: "2",
-    name: "Monsters Inc",
-  },
-  {
-    id: "3",
-    name: "Stark Industries",
-  },
-  {
-    id: "4",
-    name: "Wayne Enterprises",
-  },
-  {
-    id: "5",
-    name: "Cyberdyne Systems",
-  },
-];
-
 export function OrganizationSwitcher() {
   const [open, setOpen] = React.useState(false);
   const [showNewOrgDialog, setShowNewOrgDialog] = React.useState(false);
+  const [organizations, setOrganizations] = React.useState<Organization[]>([]);
   const [selectedOrganization, setSelectedOrganization] =
-    React.useState<Organization>(organizations[0]);
+    React.useState<Organization | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchOrganizations = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/organizations");
+        if (!res.ok) throw new Error("Failed to fetch organizations");
+        const data = await res.json();
+        setOrganizations(data);
+        setSelectedOrganization(data[0] || null);
+      } catch (error) {
+        setOrganizations([]);
+        setSelectedOrganization(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrganizations();
+  }, []);
 
   return (
     <>
@@ -70,15 +68,18 @@ export function OrganizationSwitcher() {
             role="combobox"
             aria-expanded={open}
             aria-label="Select an organization"
-            className="w-full justify-between border-none shadow-none hover:bg-sidebar-accent cursor-pointer"
+            className="w-full justify-between hover:bg-sidebar-accent cursor-pointer shadow py-6 border-border"
+            disabled={loading || organizations.length === 0}
           >
             <div className="flex items-center gap-2 truncate">
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-10 w-10 border-border">
                 <AvatarFallback>
-                  {selectedOrganization.name.charAt(0)}
+                  {selectedOrganization?.name?.charAt(0) || "?"}
                 </AvatarFallback>
               </Avatar>
-              <span className="truncate">{selectedOrganization.name}</span>
+              <span className="truncate font-normal">
+                {selectedOrganization?.name || "No organization"}
+              </span>
             </div>
             <ChevronsUpDown
               className={cn(
@@ -91,46 +92,54 @@ export function OrganizationSwitcher() {
           <Command>
             <CommandInput placeholder="Search organization..." />
             <CommandList>
-              <CommandEmpty>No organization found.</CommandEmpty>
-              <CommandGroup heading="Organizations">
-                {organizations.map((org) => (
-                  <CommandItem
-                    key={org.id}
-                    onSelect={() => {
-                      setSelectedOrganization(org);
-                      setOpen(false);
-                    }}
-                    className="text-sm"
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback>{org.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="truncate">{org.name}</span>
-                    </div>
-                    <Check
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        selectedOrganization.id === org.id
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => {
-                    setOpen(false);
-                    setShowNewOrgDialog(true);
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Organization
-                </CommandItem>
-              </CommandGroup>
+              {loading ? (
+                <CommandEmpty>Loading...</CommandEmpty>
+              ) : (
+                <>
+                  <CommandEmpty>No organization found.</CommandEmpty>
+                  <CommandGroup heading="Organizations">
+                    {organizations.map((org) => (
+                      <CommandItem
+                        key={org.id}
+                        onSelect={() => {
+                          setSelectedOrganization(org);
+                          setOpen(false);
+                        }}
+                        className="text-sm"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback>
+                              {org.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">{org.name}</span>
+                        </div>
+                        <Check
+                          className={cn(
+                            "ml-auto h-4 w-4",
+                            selectedOrganization?.id === org.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                  <CommandSeparator />
+                  <CommandGroup>
+                    <CommandItem
+                      onSelect={() => {
+                        setOpen(false);
+                        setShowNewOrgDialog(true);
+                      }}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Organization
+                    </CommandItem>
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>
