@@ -132,6 +132,7 @@ export function UserNav() {
         <DropdownMenuItem
           onClick={handleLogout}
           disabled={isPending}
+          variant="destructive"
           className={isPending ? "opacity-50 pointer-events-none" : ""}
         >
           <LogOut className="mr-2 h-4 w-4" />

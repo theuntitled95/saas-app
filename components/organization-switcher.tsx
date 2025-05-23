@@ -1,8 +1,5 @@
 "use client";
 
-import {Check, ChevronsUpDown, Plus} from "lucide-react";
-import * as React from "react";
-
 import {Avatar, AvatarFallback} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {
@@ -26,38 +23,20 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {cn} from "@/lib/utils";
+import {Check, ChevronsUpDown, Plus} from "lucide-react";
+import * as React from "react";
 
-type Organization = {
-  id: string;
-  name: string;
-};
+import {useOrganization} from "@/app/context/organization-context"; // <-- import context
 
 export function OrganizationSwitcher() {
+  const {organizations, selectedOrganization, setSelectedOrganization} =
+    useOrganization();
+
   const [open, setOpen] = React.useState(false);
   const [showNewOrgDialog, setShowNewOrgDialog] = React.useState(false);
-  const [organizations, setOrganizations] = React.useState<Organization[]>([]);
-  const [selectedOrganization, setSelectedOrganization] =
-    React.useState<Organization | null>(null);
-  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchOrganizations = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/organizations");
-        if (!res.ok) throw new Error("Failed to fetch organizations");
-        const data = await res.json();
-        setOrganizations(data);
-        setSelectedOrganization(data[0] || null);
-      } catch (error) {
-        setOrganizations([]);
-        setSelectedOrganization(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrganizations();
-  }, []);
+  // Add new org dialog state
+  const [newOrgName, setNewOrgName] = React.useState("");
 
   return (
     <>
@@ -69,7 +48,7 @@ export function OrganizationSwitcher() {
             aria-expanded={open}
             aria-label="Select an organization"
             className="w-full justify-between hover:bg-sidebar-accent cursor-pointer shadow py-6 border-border"
-            disabled={loading || organizations.length === 0}
+            disabled={organizations.length === 0}
           >
             <div className="flex items-center gap-2 truncate">
               <Avatar className="h-10 w-10 border-border">
@@ -92,11 +71,10 @@ export function OrganizationSwitcher() {
           <Command>
             <CommandInput placeholder="Search organization..." />
             <CommandList>
-              {loading ? (
-                <CommandEmpty>Loading...</CommandEmpty>
+              {organizations.length === 0 ? (
+                <CommandEmpty>No organization found.</CommandEmpty>
               ) : (
                 <>
-                  <CommandEmpty>No organization found.</CommandEmpty>
                   <CommandGroup heading="Organizations">
                     {organizations.map((org) => (
                       <CommandItem
@@ -156,7 +134,12 @@ export function OrganizationSwitcher() {
           <div className="space-y-4 py-2 pb-4">
             <div className="space-y-2">
               <Label htmlFor="name">Organization name</Label>
-              <Input id="name" placeholder="Acme Inc." />
+              <Input
+                id="name"
+                placeholder="Acme Inc."
+                value={newOrgName}
+                onChange={(e) => setNewOrgName(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
@@ -166,7 +149,15 @@ export function OrganizationSwitcher() {
             >
               Cancel
             </Button>
-            <Button onClick={() => setShowNewOrgDialog(false)}>Continue</Button>
+            <Button
+              onClick={async () => {
+                // TODO: Add API call to create the org here
+                // TODO: After creation, refetch orgs and select the new one
+                setShowNewOrgDialog(false);
+              }}
+            >
+              Continue
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
